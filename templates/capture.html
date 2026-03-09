@@ -8,63 +8,66 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #000; color: #fff; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; }
   #video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  #overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 50px 20px 50px; pointer-events: none; }
+  #overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 50px 20px 50px; }
   #top { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   #title { font-size: 16px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; background: rgba(0,0,0,0.55); padding: 7px 16px; border-radius: 20px; }
-  #instruction-box { background: rgba(0,0,0,0.55); padding: 10px 20px; border-radius: 20px; font-size: 14px; color: rgba(255,255,255,0.85); text-align: center; max-width: 280px; line-height: 1.5; }
-  #middle { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-  #ring-container { position: relative; width: 160px; height: 160px; }
+  #warning-box { display: none; background: rgba(255,60,60,0.85); padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; text-align: center; }
+  #middle { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  #ring-container { position: relative; width: 180px; height: 180px; }
   #ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-  #ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 6; }
-  #ring-progress { fill: none; stroke: #43e97b; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 0.5s ease; }
+  #ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; }
+  #ring-progress { fill: none; stroke: #43e97b; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
   #ring-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-  #angle-display { font-size: 42px; font-weight: 800; line-height: 1; }
-  #angle-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 0.05em; }
-  #checks { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 240px; }
-  .check { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.3s; }
-  .check.done { background: #43e97b; border-color: #43e97b; }
-  .check.active { border-color: #fff; background: rgba(255,255,255,0.15); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
-  #bottom { display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: all; }
-  #status { font-size: 13px; color: #43e97b; min-height: 18px; text-align: center; }
-  #btn-row { display: flex; gap: 16px; align-items: center; }
-  #camera-toggle { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; cursor: pointer; }
-  #start-btn { width: 80px; height: 80px; border-radius: 50%; background: #fff; border: 5px solid rgba(255,255,255,0.3); cursor: pointer; transition: transform 0.1s; box-shadow: 0 0 30px rgba(255,255,255,0.15); font-size: 13px; font-weight: 700; color: #000; }
-  #start-btn.scanning { background: #ff4444; border-color: rgba(255,68,68,0.4); color: #fff; }
-  #view-btn { display: none; background: #43e97b; color: #000; border: none; padding: 16px 44px; border-radius: 30px; font-size: 17px; font-weight: 700; cursor: pointer; }
-  #processing { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); flex-direction: column; align-items: center; justify-content: center; gap: 20px; z-index: 100; }
-  .spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #43e97b; border-radius: 50%; animation: spin 1s linear infinite; }
+  #angle-display { font-size: 46px; font-weight: 800; line-height: 1; }
+  #angle-label { font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 0.08em; text-transform: uppercase; }
+  #checks { display: flex; gap: 7px; flex-wrap: wrap; justify-content: center; max-width: 260px; }
+  .check { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.3s; }
+  .check.done { background: #43e97b; border-color: #43e97b; color: #000; font-weight: 700; }
+  .check.active { border-color: #fff; background: rgba(255,255,255,0.15); animation: pulse 0.8s infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+  #bottom { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  #status { font-size: 13px; color: #43e97b; min-height: 18px; text-align: center; font-weight: 500; }
+  #btn-row { display: flex; gap: 20px; align-items: center; }
+  #camera-toggle { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: #fff; padding: 10px 22px; border-radius: 20px; font-size: 14px; cursor: pointer; font-weight: 600; }
+  #start-btn { width: 84px; height: 84px; border-radius: 50%; background: #fff; border: 5px solid rgba(255,255,255,0.25); cursor: pointer; font-size: 14px; font-weight: 700; color: #000; transition: all 0.2s; box-shadow: 0 0 30px rgba(255,255,255,0.1); }
+  #start-btn.scanning { background: #ff4444; border-color: rgba(255,68,68,0.3); color: #fff; }
+  #view-btn { display: none; background: #43e97b; color: #000; border: none; padding: 18px 50px; border-radius: 30px; font-size: 18px; font-weight: 700; cursor: pointer; width: 100%; max-width: 300px; }
+  #processing { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); flex-direction: column; align-items: center; justify-content: center; gap: 20px; z-index: 100; }
+  #processing p { font-size: 15px; color: rgba(255,255,255,0.6); text-align: center; max-width: 260px; line-height: 1.6; }
+  .spinner { width: 52px; height: 52px; border: 3px solid rgba(255,255,255,0.08); border-top-color: #43e97b; border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.1s; }
 </style>
 </head>
 <body>
 <video id="video" autoplay playsinline></video>
+<div id="flash"></div>
 
 <div id="overlay">
   <div id="top">
     <div id="title">Renderable</div>
-    <div id="instruction-box">Stand in the center of the room and press Start</div>
+    <div id="warning-box" id="warning-box"></div>
   </div>
 
   <div id="middle">
     <div id="ring-container">
-      <svg id="ring-svg" viewBox="0 0 160 160">
-        <circle id="ring-bg" cx="80" cy="80" r="70"/>
-        <circle id="ring-progress" cx="80" cy="80" r="70"/>
+      <svg id="ring-svg" viewBox="0 0 180 180">
+        <circle id="ring-bg" cx="90" cy="90" r="80"/>
+        <circle id="ring-progress" cx="90" cy="90" r="80"/>
       </svg>
       <div id="ring-inner">
         <div id="angle-display">0°</div>
-        <div id="angle-label">ROTATE</div>
+        <div id="angle-label">Ready</div>
       </div>
     </div>
     <div id="checks"></div>
   </div>
 
   <div id="bottom">
-    <div id="status"></div>
+    <div id="status">Press Start and rotate slowly</div>
     <div id="btn-row">
       <button id="camera-toggle" onclick="toggleCamera()">0.5x</button>
-      <button id="start-btn" onclick="toggleScanning()">Start</button>
+      <button id="start-btn" onclick="startScanning()">Start</button>
     </div>
     <button id="view-btn" onclick="viewScan()">View 360° →</button>
   </div>
@@ -72,32 +75,68 @@
 
 <div id="processing">
   <div class="spinner"></div>
-  <div style="font-size:16px; color:rgba(255,255,255,0.8);">Building your 360° view...</div>
+  <div style="font-size:18px; font-weight:700;">Building panorama...</div>
+  <p>Stitching your photos into a 360° view. This takes about 15 seconds.</p>
 </div>
 
 <script>
-const ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
-const CIRCUMFERENCE = 2 * Math.PI * 70;
+const ANGLES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+const CIRCUMFERENCE = 2 * Math.PI * 80;
 let capturedAngles = new Set();
 let scanId = 'scan_' + Date.now();
 let stream = null;
 let useWide = false;
 let isScanning = false;
-let lastCapturedAngle = -999;
 let currentHeading = 0;
 let startHeading = null;
 let gyroAvailable = false;
-let captureInterval = null;
+let lastCapturedRelative = new Set();
+let lastHeadings = [];
+let brightnessWarningShown = false;
+let speedWarningActive = false;
+
+const TOLERANCE = 12;
+
+document.getElementById('ring-progress').style.strokeDasharray = CIRCUMFERENCE;
+document.getElementById('ring-progress').style.strokeDashoffset = CIRCUMFERENCE;
 
 async function startCamera() {
   if (stream) stream.getTracks().forEach(t => t.stop());
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
-    });
-    document.getElementById('video').srcObject = stream;
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === 'videoinput');
+    
+    let constraints = {
+      video: {
+        facingMode: { exact: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      }
+    };
+
+    if (useWide && videoDevices.length > 1) {
+      constraints.video.deviceId = { ideal: videoDevices[0].deviceId };
+      constraints.video.zoom = { ideal: 0.5 };
+    }
+
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+
+    const track = stream.getVideoTracks()[0];
+    const caps = track.getCapabilities();
+    if (useWide && caps.zoom) {
+      await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min }] });
+    }
   } catch(e) {
-    alert('Camera access needed.');
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      document.getElementById('video').srcObject = stream;
+    } catch(e2) {
+      alert('Camera access needed. Please allow camera.');
+    }
   }
 }
 
@@ -112,6 +151,7 @@ function buildChecks() {
   container.innerHTML = '';
   ANGLES.forEach((angle, i) => {
     const div = document.createElement('div');
+    const relAngle = Math.round((angle / 360) * 360);
     div.className = 'check' + (capturedAngles.has(angle) ? ' done' : '');
     div.id = 'check_' + i;
     div.textContent = capturedAngles.has(angle) ? '✓' : '';
@@ -123,61 +163,115 @@ function updateRing() {
   const progress = capturedAngles.size / ANGLES.length;
   const offset = CIRCUMFERENCE * (1 - progress);
   document.getElementById('ring-progress').style.strokeDashoffset = offset;
-  document.getElementById('ring-progress').style.strokeDasharray = CIRCUMFERENCE;
-  
   if (capturedAngles.size === ANGLES.length) {
     document.getElementById('angle-display').textContent = '360°';
     document.getElementById('angle-label').textContent = 'COMPLETE';
-    document.getElementById('ring-progress').style.stroke = '#43e97b';
   }
 }
 
+function showWarning(msg) {
+  const box = document.getElementById('warning-box');
+  box.textContent = msg;
+  box.style.display = 'block';
+  setTimeout(() => { box.style.display = 'none'; }, 2500);
+}
+
+function checkBrightness() {
+  const video = document.getElementById('video');
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 36;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, 64, 36);
+  const data = ctx.getImageData(0, 0, 64, 36).data;
+  let total = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    total += (data[i] + data[i+1] + data[i+2]) / 3;
+  }
+  const avg = total / (data.length / 4);
+  return avg;
+}
+
+function checkSpeed() {
+  if (lastHeadings.length < 5) return false;
+  const recent = lastHeadings.slice(-5);
+  let totalDiff = 0;
+  for (let i = 1; i < recent.length; i++) {
+    let diff = Math.abs(recent[i] - recent[i-1]);
+    if (diff > 180) diff = 360 - diff;
+    totalDiff += diff;
+  }
+  return totalDiff > 25;
+}
+
 async function requestGyro() {
-  if (typeof DeviceOrientationEvent !== 'undefined' && 
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
       typeof DeviceOrientationEvent.requestPermission === 'function') {
     try {
       const state = await DeviceOrientationEvent.requestPermission();
-      if (state === 'granted') setupGyro();
+      if (state === 'granted') { setupGyro(); return true; }
     } catch(e) {}
+    return false;
   } else {
     setupGyro();
+    return true;
   }
 }
 
 function setupGyro() {
   gyroAvailable = true;
   window.addEventListener('deviceorientation', (e) => {
-    if (e.alpha !== null) {
-      currentHeading = e.alpha;
-      if (isScanning && startHeading !== null) {
-        const relative = ((currentHeading - startHeading) + 360) % 360;
-        document.getElementById('angle-display').textContent = Math.round(relative) + '°';
-        tryAutoCapture(relative);
+    if (e.alpha === null) return;
+    currentHeading = e.alpha;
+    lastHeadings.push(currentHeading);
+    if (lastHeadings.length > 20) lastHeadings.shift();
+
+    if (!isScanning || startHeading === null) return;
+
+    let relative = ((startHeading - currentHeading) + 360) % 360;
+    document.getElementById('angle-display').textContent = Math.round(relative) + '°';
+
+    if (checkSpeed()) {
+      if (!speedWarningActive) {
+        speedWarningActive = true;
+        showWarning('⚡ Too fast — slow down!');
+        setTimeout(() => { speedWarningActive = false; }, 3000);
       }
+      return;
     }
+
+    tryAutoCapture(relative);
   });
 }
 
-function tryAutoCapture(relativeAngle) {
+function tryAutoCapture(relative) {
   for (const target of ANGLES) {
     if (capturedAngles.has(target)) continue;
-    const diff = Math.abs(relativeAngle - target);
-    if (diff < 12 || diff > 348) {
-      if (Math.abs(target - lastCapturedAngle) > 30 || lastCapturedAngle === -999) {
-        captureAt(target);
-        lastCapturedAngle = target;
-        break;
-      }
+    let diff = Math.abs(relative - target);
+    if (diff > 180) diff = 360 - diff;
+    if (diff < TOLERANCE) {
+      captureAt(target, relative);
+      break;
     }
   }
 }
 
-async function captureAt(angle) {
+async function captureAt(angle, relative) {
+  const brightness = checkBrightness();
+  if (brightness < 30) {
+    showWarning('💡 Too dark — turn on more lights');
+    return;
+  }
+
   const video = document.getElementById('video');
   const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  canvas.width = video.videoWidth || 1280;
+  canvas.height = video.videoHeight || 720;
   canvas.getContext('2d').drawImage(video, 0, 0);
+
+  const flash = document.getElementById('flash');
+  flash.style.opacity = '0.3';
+  setTimeout(() => { flash.style.opacity = '0'; }, 150);
 
   canvas.toBlob(async (blob) => {
     const formData = new FormData();
@@ -188,68 +282,70 @@ async function captureAt(angle) {
     try {
       await fetch('/upload', { method: 'POST', body: formData });
       capturedAngles.add(angle);
+
       document.getElementById('status').textContent = '✓ ' + angle + '° captured';
-      
+
       const idx = ANGLES.indexOf(angle);
       const check = document.getElementById('check_' + idx);
       if (check) { check.className = 'check done'; check.textContent = '✓'; }
-      
+
       updateRing();
 
       if (capturedAngles.size === ANGLES.length) {
         finishScan();
       }
-    } catch(e) {}
-  }, 'image/jpeg', 0.92);
+    } catch(e) {
+      document.getElementById('status').textContent = 'Upload error — try again';
+    }
+  }, 'image/jpeg', 0.93);
 }
 
-function manualCapture() {
-  if (!isScanning) return;
-  const relative = startHeading !== null 
-    ? ((currentHeading - startHeading) + 360) % 360 
-    : 0;
-  
-  let closest = ANGLES[0];
-  let minDiff = 999;
-  for (const a of ANGLES) {
-    if (capturedAngles.has(a)) continue;
-    const diff = Math.min(Math.abs(relative - a), 360 - Math.abs(relative - a));
-    if (diff < minDiff) { minDiff = diff; closest = a; }
-  }
-  captureAt(closest);
-}
+async function startScanning() {
+  const gyro = await requestGyro();
+  isScanning = true;
+  startHeading = currentHeading;
+  capturedAngles.clear();
+  lastCapturedRelative.clear();
 
-async function toggleScanning() {
-  if (!isScanning) {
-    await requestGyro();
-    isScanning = true;
-    startHeading = currentHeading;
-    lastCapturedAngle = -999;
-    document.getElementById('start-btn').textContent = 'Tap';
-    document.getElementById('start-btn').classList.add('scanning');
-    document.getElementById('instruction-box').textContent = 
-      gyroAvailable 
-        ? 'Slowly rotate in a full circle — auto-capturing as you turn' 
-        : 'Rotate and tap the button to capture each angle';
-    document.getElementById('start-btn').onclick = manualCapture;
-    buildChecks();
-  }
+  document.getElementById('start-btn').textContent = gyro ? 'Tap' : 'Tap';
+  document.getElementById('start-btn').classList.add('scanning');
+  document.getElementById('angle-label').textContent = 'SCANNING';
+  document.getElementById('status').textContent = gyro 
+    ? 'Rotate slowly — auto capturing' 
+    : 'Tap the button at each angle';
+
+  document.getElementById('start-btn').onclick = () => {
+    if (!isScanning) return;
+    let relative = startHeading !== null
+      ? ((startHeading - currentHeading) + 360) % 360
+      : 0;
+    let closest = ANGLES[0];
+    let minDiff = 999;
+    for (const a of ANGLES) {
+      if (capturedAngles.has(a)) continue;
+      const d = Math.min(Math.abs(relative - a), 360 - Math.abs(relative - a));
+      if (d < minDiff) { minDiff = d; closest = a; }
+    }
+    captureAt(closest, relative);
+  };
+
+  buildChecks();
 }
 
 async function finishScan() {
   isScanning = false;
   document.getElementById('start-btn').style.display = 'none';
   document.getElementById('camera-toggle').style.display = 'none';
-  document.getElementById('instruction-box').textContent = 'Building your 360° view...';
+  document.getElementById('status').textContent = '✅ All angles captured!';
   document.getElementById('processing').style.display = 'flex';
-  
+
   try {
     await fetch('/stitch/' + scanId, { method: 'POST' });
   } catch(e) {}
-  
+
   document.getElementById('processing').style.display = 'none';
   document.getElementById('view-btn').style.display = 'block';
-  document.getElementById('instruction-box').textContent = 'Your room is ready!';
+  document.getElementById('angle-label').textContent = 'DONE';
 }
 
 function viewScan() {
@@ -258,7 +354,6 @@ function viewScan() {
 
 startCamera();
 buildChecks();
-updateRing();
 </script>
 </body>
 </html>
