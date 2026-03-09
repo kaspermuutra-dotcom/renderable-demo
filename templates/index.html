@@ -1,4 +1,3 @@
-index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,44 +15,61 @@ index.html
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 32px;
-    padding: 40px 20px;
+    padding: 40px 24px;
+    gap: 0;
   }
-  h1 {
-    font-size: 48px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
-  h1 span { color: #43e97b; }
-  p {
-    color: rgba(255,255,255,0.5);
-    font-size: 16px;
-    text-align: center;
-    max-width: 300px;
-    line-height: 1.7;
-  }
-  .btn {
+  .logo { font-size: 42px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .logo span { color: #43e97b; }
+  .tagline { font-size: 16px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 48px; }
+  .steps { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 320px; margin-bottom: 48px; }
+  .step { display: flex; align-items: flex-start; gap: 16px; }
+  .step-number { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; color: #43e97b; }
+  .step-text { padding-top: 6px; }
+  .step-title { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+  .step-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+  .start-btn {
     background: #fff;
     color: #000;
-    padding: 18px 48px;
+    padding: 18px 56px;
     border-radius: 50px;
     font-size: 18px;
     font-weight: 700;
     text-decoration: none;
-    transition: transform 0.2s;
+    display: inline-block;
+    margin-bottom: 16px;
   }
-  .btn:hover { transform: scale(1.05); }
-  .sub {
-    font-size: 12px;
-    color: rgba(255,255,255,0.3);
-    text-align: center;
-  }
+  .note { font-size: 12px; color: rgba(255,255,255,0.25); text-align: center; }
 </style>
 </head>
 <body>
-  <h1>Render<span>able</span></h1>
-  <p>Scan any room with your iPhone and explore it in 360°</p>
-  <a href="/capture" class="btn">Start Scanning</a>
-  <p class="sub">Open on your iPhone for best experience</p>
+  <div class="logo">Render<span>able</span></div>
+  <div class="tagline">Turn any room into a 360° walkthrough</div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-number">1</div>
+      <div class="step-text">
+        <div class="step-title">Find your spot</div>
+        <div class="step-desc">Stand in the center of the room. Keep your feet planted in one place.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-number">2</div>
+      <div class="step-text">
+        <div class="step-title">Rotate slowly</div>
+        <div class="step-desc">Hold your phone up and turn in a full circle. The app auto-captures as you rotate.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-text">
+        <div class="step-title">Explore in 360°</div>
+        <div class="step-desc">Your room is stitched into an interactive Street View you can share with anyone.</div>
+      </div>
+    </div>
+  </div>
+
+  <a href="/capture" class="start-btn">Start Scanning</a>
+  <div class="note">Works on any iPhone or Android • No app download needed</div>
 </body>
 </html>
