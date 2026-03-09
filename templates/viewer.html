@@ -1,0 +1,85 @@
+viewer.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renderable — View</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/panolens@0.12.1/build/panolens.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; color: #fff; font-family: -apple-system, sans-serif; }
+  #viewer { width: 100vw; height: 100vh; }
+  #ui { position: fixed; top: 0; left: 0; right: 0; padding: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; pointer-events: none; }
+  #logo { font-size: 16px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 20px; }
+  #back-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; pointer-events: all; }
+  #loading { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 200; }
+  #loading-text { font-size: 16px; color: rgba(255,255,255,0.7); }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #43e97b; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #error { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  #error p { color: rgba(255,255,255,0.6); font-size: 14px; }
+  #error a { color: #43e97b; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div id="loading-text">Loading your room...</div>
+</div>
+
+<div id="error">
+  <p>No photos found for this scan.</p>
+  <a href="/capture">← Scan a room first</a>
+</div>
+
+<div id="ui">
+  <div id="logo">Renderable</div>
+  <button id="back-btn" onclick="window.location.href='/capture'">+ New Scan</button>
+</div>
+
+<div id="viewer"></div>
+
+<script>
+const scanId = "{{ scan_id }}";
+
+async function loadViewer() {
+  try {
+    const res = await fetch('/scans/' + scanId);
+    const data = await res.json();
+
+    if (!data.photos || data.photos.length === 0) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'flex';
+      return;
+    }
+
+    document.getElementById('loading-text').textContent = 'Building 360° view...';
+
+    const firstPhoto = '/photos/' + scanId + '/' + data.photos[0];
+
+    const panorama = new PANOLENS.ImagePanorama(firstPhoto);
+    const viewer = new PANOLENS.Viewer({
+      container: document.getElementById('viewer'),
+      autoRotate: true,
+      autoRotateSpeed: 0.3,
+      controlBar: true
+    });
+
+    panorama.addEventListener('load', () => {
+      document.getElementById('loading').style.display = 'none';
+    });
+
+    viewer.add(panorama);
+
+  } catch(e) {
+    document.getElementById('loading-text').textContent = 'Error loading scan.';
+  }
+}
+
+loadViewer();
+</script>
+</body>
+</html>

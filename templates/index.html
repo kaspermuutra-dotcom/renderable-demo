@@ -1,0 +1,59 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renderable</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    color: #fff;
+    font-family: -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: #43e97b; }
+  p {
+    color: rgba(255,255,255,0.5);
+    font-size: 16px;
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.7;
+  }
+  .btn {
+    background: #fff;
+    color: #000;
+    padding: 18px 48px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+  .btn:hover { transform: scale(1.05); }
+  .sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>Render<span>able</span></h1>
+  <p>Scan any room with your iPhone and explore it in 360°</p>
+  <a href="/capture" class="btn">Start Scanning</a>
+  <p class="sub">Open on your iPhone for best experience</p>
+</body>
+</html>

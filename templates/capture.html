@@ -1,0 +1,133 @@
+capture.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Renderable — Capture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; color: #fff; font-family: -apple-system, sans-serif; height: 100vh; overflow: hidden; }
+  #camera-container { position: relative; width: 100%; height: 100vh; }
+  #video { width: 100%; height: 100%; object-fit: cover; }
+  #overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 20px; }
+  #title { font-size: 18px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; }
+  #angle-display { font-size: 48px; font-weight: 800; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+  #instructions { font-size: 14px; color: rgba(255,255,255,0.7); text-align: center; background: rgba(0,0,0,0.5); padding: 8px 16px; border-radius: 20px; }
+  #controls { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+  #progress-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .angle-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.5); transition: all 0.3s; }
+  .angle-dot.captured { background: #43e97b; border-color: #43e97b; }
+  .angle-dot.current { background: #fff; border-color: #fff; transform: scale(1.3); }
+  #capture-btn { width: 80px; height: 80px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,0.5); cursor: pointer; transition: transform 0.1s; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
+  #capture-btn:active { transform: scale(0.9); }
+  #capture-btn.captured { background: #43e97b; }
+  #view-btn { display: none; background: #43e97b; color: #000; border: none; padding: 16px 40px; border-radius: 30px; font-size: 18px; font-weight: 700; cursor: pointer; }
+  #status { font-size: 13px; color: #43e97b; min-height: 20px; }
+</style>
+</head>
+<body>
+<div id="camera-container">
+  <video id="video" autoplay playsinline></video>
+  <div id="overlay">
+    <div id="title">Renderable</div>
+    <div id="angle-display">0°</div>
+    <div id="instructions">Stand in the center of the room.<br>Rotate and capture each direction.</div>
+    <div id="controls">
+      <div id="progress-bar"></div>
+      <div id="status"></div>
+      <button id="capture-btn" onclick="capturePhoto()"></button>
+      <button id="view-btn" onclick="viewScan()">View 360° →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
+let currentAngleIndex = 0;
+let capturedAngles = [];
+let scanId = 'scan_' + Date.now();
+let stream = null;
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    document.getElementById('video').srcObject = stream;
+  } catch(e) {
+    alert('Camera access needed. Please allow camera in Safari settings.');
+  }
+}
+
+function buildProgressBar() {
+  const bar = document.getElementById('progress-bar');
+  bar.innerHTML = '';
+  ANGLES.forEach((angle, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'angle-dot' + (i === currentAngleIndex ? ' current' : '') + (capturedAngles.includes(angle) ? ' captured' : '');
+    dot.id = 'dot_' + angle;
+    bar.appendChild(dot);
+  });
+}
+
+function updateAngleDisplay() {
+  document.getElementById('angle-display').textContent = ANGLES[currentAngleIndex] + '°';
+  document.getElementById('instructions').textContent = 
+    currentAngleIndex === 0 ? 'Face forward and capture' : 
+    'Rotate to ' + ANGLES[currentAngleIndex] + '° and capture';
+  buildProgressBar();
+}
+
+async function capturePhoto() {
+  const video = document.getElementById('video');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+
+  canvas.toBlob(async (blob) => {
+    const angle = ANGLES[currentAngleIndex];
+    const formData = new FormData();
+    formData.append('photo', blob, 'photo.jpg');
+    formData.append('scan_id', scanId);
+    formData.append('angle', angle);
+
+    document.getElementById('status').textContent = 'Saving ' + angle + '°...';
+    document.getElementById('capture-btn').classList.add('captured');
+
+    try {
+      const res = await fetch('/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      capturedAngles.push(angle);
+      document.getElementById('status').textContent = '✓ Captured ' + angle + '°';
+
+      currentAngleIndex++;
+      if (currentAngleIndex < ANGLES.length) {
+        setTimeout(() => {
+          document.getElementById('capture-btn').classList.remove('captured');
+          document.getElementById('status').textContent = '';
+          updateAngleDisplay();
+        }, 800);
+      } else {
+        document.getElementById('status').textContent = '✅ All angles captured!';
+        document.getElementById('capture-btn').style.display = 'none';
+        document.getElementById('view-btn').style.display = 'block';
+        document.getElementById('instructions').textContent = 'Your room is ready to view!';
+      }
+    } catch(e) {
+      document.getElementById('status').textContent = 'Error — try again';
+      document.getElementById('capture-btn').classList.remove('captured');
+    }
+  }, 'image/jpeg', 0.9);
+}
+
+function viewScan() {
+  window.location.href = '/view/' + scanId;
+}
+
+startCamera();
+updateAngleDisplay();
+</script>
+</body>
+</html>
