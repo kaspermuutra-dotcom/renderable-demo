@@ -1,9 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import os
 import uuid
-import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter, ImageEnhance
 import io
 
 app = Flask(__name__)
@@ -27,17 +26,13 @@ def capture():
 def upload():
     if 'photo' not in request.files:
         return jsonify({'error': 'No photo'}), 400
-    
     file = request.files['photo']
     scan_id = request.form.get('scan_id', str(uuid.uuid4()))
     angle = request.form.get('angle', '0')
-    
     scan_folder = os.path.join(UPLOAD_FOLDER, scan_id)
     os.makedirs(scan_folder, exist_ok=True)
-    
     filename = f'angle_{int(float(angle)):03d}.jpg'
     file.save(os.path.join(scan_folder, filename))
-    
     return jsonify({'scan_id': scan_id, 'angle': angle, 'status': 'saved'})
 
 @app.route('/stitch/<scan_id>', methods=['POST'])
@@ -45,80 +40,68 @@ def stitch(scan_id):
     scan_folder = os.path.join(UPLOAD_FOLDER, scan_id)
     if not os.path.exists(scan_folder):
         return jsonify({'error': 'Scan not found'}), 404
-    
+
     photos = sorted([
-        f for f in os.listdir(scan_folder) 
+        f for f in os.listdir(scan_folder)
         if f.startswith('angle_') and f.endswith('.jpg')
     ])
-    
+
     if len(photos) < 2:
         return jsonify({'error': 'Not enough photos'}), 400
-    
+
     images = []
     for photo in photos:
-        img = cv2.imread(os.path.join(scan_folder, photo))
-        if img is not None:
+        try:
+            img = Image.open(os.path.join(scan_folder, photo)).convert('RGB')
             images.append(img)
-    
+        except:
+            pass
+
     if len(images) < 2:
         return jsonify({'error': 'Could not load images'}), 400
 
-    panorama_path = os.path.join(scan_folder, 'panorama.jpg')
+    target_h = 2048
+    resized = []
+    for img in images:
+        ratio = target_h / img.height
+        new_w = int(img.width * ratio)
+        resized.append(img.resize((new_w, target_h), Image.LANCZOS))
 
-    try:
-        stitcher = cv2.Stitcher.create(cv2.Stitcher_PANORAMA)
-        stitcher.setPanoConfidenceThresh(0.3)
-        status, pano = stitcher.stitch(images)
-        
-        if status == cv2.Stitcher_OK:
-            h, w = pano.shape[:2]
-            target_w = max(w, 4096)
-            target_h = target_w // 2
-            equirect = cv2.resize(pano, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
-            cv2.imwrite(panorama_path, equirect, [cv2.IMWRITE_JPEG_QUALITY, 90])
-            return jsonify({'scan_id': scan_id, 'status': 'stitched', 'url': f'/photos/{scan_id}/panorama.jpg'})
+    overlap = resized[0].width // 5
+    total_w = sum(img.width for img in resized) - overlap * (len(resized) - 1)
+    panorama = Image.new('RGB', (total_w, target_h))
+
+    x = 0
+    for i, img in enumerate(resized):
+        w = img.width
+        if i == 0:
+            panorama.paste(img, (0, 0))
+            x = w - overlap
         else:
-            return fallback_stitch(images, panorama_path, scan_id)
-            
-    except Exception as e:
-        return fallback_stitch(images, panorama_path, scan_id)
+            blend_region_left = np.array(panorama.crop((x, 0, x + overlap, target_h)), dtype=np.float32)
+            blend_region_right = np.array(img.crop((0, 0, overlap, target_h)), dtype=np.float32)
+            mask = np.linspace(1, 0, overlap, dtype=np.float32).reshape(1, -1, 1)
+            mask = np.repeat(mask, target_h, axis=0)
+            blended = (blend_region_left * mask + blend_region_right * (1 - mask)).astype(np.uint8)
+            blended_img = Image.fromarray(blended)
+            panorama.paste(blended_img, (x, 0))
+            panorama.paste(img.crop((overlap, 0, w, target_h)), (x + overlap, 0))
+            x += w - overlap
 
-def fallback_stitch(images, panorama_path, scan_id):
-    try:
-        target_h = 2048
-        resized = []
-        for img in images:
-            ratio = target_h / img.shape[0]
-            new_w = int(img.shape[1] * ratio)
-            resized.append(cv2.resize(img, (new_w, target_h), interpolation=cv2.INTER_LANCZOS4))
-        
-        total_w = sum(img.shape[1] for img in resized)
-        panorama = np.zeros((target_h, total_w, 3), dtype=np.uint8)
-        
-        x = 0
-        for img in resized:
-            w = img.shape[1]
-            overlap = w // 8
-            if x > 0 and x + w <= total_w:
-                for c in range(overlap):
-                    alpha = c / overlap
-                    panorama[:, x+c] = (
-                        (1 - alpha) * panorama[:, x+c] + 
-                        alpha * img[:, c]
-                    ).astype(np.uint8)
-                panorama[:, x+overlap:x+w] = img[:, overlap:]
-            else:
-                panorama[:, x:x+w] = img
-            x += w - overlap // 2
+    final_w = 4096
+    final_h = 2048
+    final = panorama.resize((final_w, final_h), Image.LANCZOS)
+    enhancer = ImageEnhance.Sharpness(final)
+    final = enhancer.enhance(1.2)
 
-        final_w = 4096
-        final_h = 2048
-        final = cv2.resize(panorama[:, :x], (final_w, final_h), interpolation=cv2.INTER_LANCZOS4)
-        cv2.imwrite(panorama_path, final, [cv2.IMWRITE_JPEG_QUALITY, 88])
-        
-        return jsonify({'scan_id': scan_id, 'status': 'stitched_fallback', 'url': f'/photos/{scan_id}/panorama.jpg'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    panorama_path = os.path.join(scan_folder, 'panorama.jpg')
+    final.save(panorama_path, quality=88, optimize=True)
+
+    return jsonify({
+        'scan_id': scan_id,
+        'status': 'stitched',
+        'url': f'/photos/{scan_id}/panorama.jpg'
+    })
 
 @app.route('/view/<scan_id>')
 def view(scan_id):
