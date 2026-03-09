@@ -1,4 +1,3 @@
-viewer.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,11 +15,12 @@ viewer.html
   #back-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 14px; pointer-events: all; }
   #loading { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 200; }
   #loading-text { font-size: 16px; color: rgba(255,255,255,0.7); }
-  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #43e97b; border-radius: 50%; animation: spin 1s linear infinite; }
+  .spinner { width: 48px; height: 48px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #43e97b; border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   #error { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
   #error p { color: rgba(255,255,255,0.6); font-size: 14px; }
-  #error a { color: #43e97b; text-decoration: none; }
+  #error a { color: #43e97b; text-decoration: none; font-size: 16px; }
+  #hint { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px; font-size: 13px; color: rgba(255,255,255,0.7); pointer-events: none; transition: opacity 1s; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -31,8 +31,8 @@ viewer.html
 </div>
 
 <div id="error">
-  <p>No photos found for this scan.</p>
-  <a href="/capture">← Scan a room first</a>
+  <p>Could not load this scan.</p>
+  <a href="/capture">← Scan a new room</a>
 </div>
 
 <div id="ui">
@@ -41,6 +41,7 @@ viewer.html
 </div>
 
 <div id="viewer"></div>
+<div id="hint">👆 Drag to look around</div>
 
 <script>
 const scanId = "{{ scan_id }}";
@@ -50,7 +51,13 @@ async function loadViewer() {
     const res = await fetch('/scans/' + scanId);
     const data = await res.json();
 
-    if (!data.photos || data.photos.length === 0) {
+    let imageUrl;
+
+    if (data.has_panorama) {
+      imageUrl = '/photos/' + scanId + '/panorama.jpg';
+    } else if (data.photos && data.photos.length > 0) {
+      imageUrl = '/photos/' + scanId + '/' + data.photos[0];
+    } else {
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error').style.display = 'flex';
       return;
@@ -58,18 +65,25 @@ async function loadViewer() {
 
     document.getElementById('loading-text').textContent = 'Building 360° view...';
 
-    const firstPhoto = '/photos/' + scanId + '/' + data.photos[0];
-
-    const panorama = new PANOLENS.ImagePanorama(firstPhoto);
+    const panorama = new PANOLENS.ImagePanorama(imageUrl);
     const viewer = new PANOLENS.Viewer({
       container: document.getElementById('viewer'),
       autoRotate: true,
-      autoRotateSpeed: 0.3,
-      controlBar: true
+      autoRotateSpeed: 0.4,
+      controlBar: true,
+      output: 'console'
     });
 
     panorama.addEventListener('load', () => {
       document.getElementById('loading').style.display = 'none';
+      setTimeout(() => {
+        document.getElementById('hint').style.opacity = '0';
+      }, 3000);
+    });
+
+    panorama.addEventListener('error', () => {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'flex';
     });
 
     viewer.add(panorama);

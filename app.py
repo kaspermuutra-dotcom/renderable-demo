@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory, render_template
 import os
 import uuid
+from PIL import Image
+import io
 
 app = Flask(__name__)
 
@@ -32,6 +34,42 @@ def upload():
     
     return jsonify({'scan_id': scan_id, 'angle': angle, 'status': 'saved'})
 
+@app.route('/stitch/<scan_id>', methods=['POST'])
+def stitch(scan_id):
+    scan_folder = os.path.join(UPLOAD_FOLDER, scan_id)
+    if not os.path.exists(scan_folder):
+        return jsonify({'error': 'Scan not found'}), 404
+    
+    photos = sorted([f for f in os.listdir(scan_folder) if f.endswith('.jpg') and f != 'panorama.jpg'])
+    
+    if len(photos) == 0:
+        return jsonify({'error': 'No photos found'}), 400
+    
+    images = []
+    for photo in photos:
+        img = Image.open(os.path.join(scan_folder, photo))
+        images.append(img)
+    
+    target_height = 1080
+    resized = []
+    for img in images:
+        ratio = target_height / img.height
+        new_width = int(img.width * ratio)
+        resized.append(img.resize((new_width, target_height), Image.LANCZOS))
+    
+    total_width = sum(img.width for img in resized)
+    panorama = Image.new('RGB', (total_width, target_height))
+    
+    x_offset = 0
+    for img in resized:
+        panorama.paste(img, (x_offset, 0))
+        x_offset += img.width
+    
+    panorama_path = os.path.join(scan_folder, 'panorama.jpg')
+    panorama.save(panorama_path, quality=85)
+    
+    return jsonify({'scan_id': scan_id, 'status': 'stitched', 'url': f'/photos/{scan_id}/panorama.jpg'})
+
 @app.route('/view/<scan_id>')
 def view(scan_id):
     return render_template('viewer.html', scan_id=scan_id)
@@ -44,10 +82,11 @@ def get_photo(scan_id, filename):
 def get_scan_photos(scan_id):
     scan_folder = os.path.join(UPLOAD_FOLDER, scan_id)
     if not os.path.exists(scan_folder):
-        return jsonify({'photos': []})
+        return jsonify({'photos': [], 'has_panorama': False})
     photos = os.listdir(scan_folder)
-    photos = [f for f in photos if f.endswith('.jpg')]
-    return jsonify({'photos': sorted(photos)})
+    has_panorama = 'panorama.jpg' in photos
+    photos = sorted([f for f in photos if f.endswith('.jpg') and f != 'panorama.jpg'])
+    return jsonify({'photos': photos, 'has_panorama': has_panorama})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5050))
